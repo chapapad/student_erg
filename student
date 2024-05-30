@@ -1,0 +1,150 @@
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
+
+import java.io.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
+public class StudentController {
+
+    @FXML
+    private TableView<Student> table;
+    @FXML
+    private TableColumn<Student, String> idCol;
+    @FXML
+    private TableColumn<Student, String> firstNameCol;
+    @FXML
+    private TableColumn<Student, String> lastNameCol;
+    @FXML
+    private TableColumn<Student, LocalDate> dobCol;
+    @FXML
+    private TableColumn<Student, String> emailCol;
+    @FXML
+    private TableColumn<Student, String> addressCol;
+    @FXML
+    private TableColumn<Student, String> cityCol;
+
+    private ObservableList<Student> studentList;
+    private final String FILE_PATH = "students.txt";
+
+    @FXML
+    public void initialize() {
+        studentList = FXCollections.observableArrayList();
+
+        idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
+        firstNameCol.setCellValueFactory(new PropertyValueFactory<>("firstName"));
+        lastNameCol.setCellValueFactory(new PropertyValueFactory<>("lastName"));
+        dobCol.setCellValueFactory(new PropertyValueFactory<>("dob"));
+        emailCol.setCellValueFactory(new PropertyValueFactory<>("email"));
+        addressCol.setCellValueFactory(new PropertyValueFactory<>("address"));
+        cityCol.setCellValueFactory(new PropertyValueFactory<>("city"));
+
+        table.setItems(studentList);
+        loadStudentsFromFile();
+    }
+
+    private void loadStudentsFromFile() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
+            String line;
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+            while ((line = reader.readLine()) != null) {
+                String[] fields = line.split(",");
+                Student student = new Student(fields[0], fields[1], fields[2], 
+                                              LocalDate.parse(fields[3], formatter), 
+                                              fields[4], fields[5], fields[6]);
+                studentList.add(student);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void saveStudentsToFile() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+            for (Student student : studentList) {
+                writer.write(String.format("%s,%s,%s,%s,%s,%s,%s%n", 
+                             student.getId(), student.getFirstName(), student.getLastName(), 
+                             student.getDob().format(formatter), student.getEmail(), 
+                             student.getAddress(), student.getCity()));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+class Student {
+    private String id;
+    private String firstName;
+    private String lastName;
+    private LocalDate dob;
+    private String email;
+    private String address;
+    private String city;
+
+    public Student(String id, String firstName, String lastName, LocalDate dob, String email, String address, String city) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.dob = dob;
+        this.email = email;
+        this.address = address;
+        this.city = city;
+    }
+
+    // Getters and setters for all properties
+
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+
+    public LocalDate getDob() { return dob; }
+    public void setDob(LocalDate dob) { this.dob = dob; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
+}
+
+
+
+//allo file
+
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+
+public class MainApp extends Application {
+
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        Parent root = FXMLLoader.load(getClass().getResource("StudentApp.fxml"));
+        primaryStage.setTitle("Student Management");
+        primaryStage.setScene(new Scene(root, 800, 600));
+        primaryStage.show();
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+}
